@@ -1,0 +1,3 @@
+# Exclude generated HTML reports from language statistics
+LungOrganoid/results/*.html linguist-generated
+LungOrganoid/results/tables/*.html linguist-generated
