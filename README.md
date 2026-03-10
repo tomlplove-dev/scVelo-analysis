@@ -1,5 +1,7 @@
 # scVelo Pipeline
 
+[![GEO](https://img.shields.io/badge/NCBI%20GEO-GSE249285-blue)](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE249285)
+
 RNA velocity analysis pipeline using scVelo, implementing **both** analysis
 modes from the official tutorials:
 
@@ -8,6 +10,14 @@ modes from the official tutorials:
 
 Supports Seurat object integration.  Tested on macOS with Apple Silicon
 (M1/M2/M4 Pro).
+
+## Demo Data
+
+The **LungOrganoid** demo dataset is included in this repository under `LungOrganoid/results/` (output figures, tables, and HTML report). The raw sequencing data and processed input files (`.h5ad`, `.rda`) are deposited at **NCBI GEO** with accession number **[GSE249285](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE249285)**.
+
+To reproduce the demo analysis, download the input files from GEO and place them in the `LungOrganoid/` directory:
+- `LOBLMday14WTA_scVelo.h5ad` — h5ad with spliced/unspliced layers
+- `LOBLMday14WTA_Seurat.rda` — Seurat object with metadata and embeddings
 
 ## Directory Structure
 
