@@ -1,20 +1,7 @@
 # scVelo Pipeline
 
-[![GEO](https://img.shields.io/badge/NCBI%20GEO-GSE249285-blue)](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE249285)
-
 RNA velocity analysis pipeline using scVelo, implementing **both** analysis
 modes from the official tutorials:
-
-## Demo Data
-
-The LungOrganoid demo dataset (raw sequencing data and processed files) is deposited at **NCBI GEO** with accession number **[GSE249285](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE249285)**.
-
-This repository includes:
-- **`scripts/`** — Pipeline scripts and Python dependencies
-- **`LungOrganoid/results/`** — Output figures, tables, and the self-contained HTML report
-- Large input data files (`.h5ad`, `.rda`) are not included in this repository; download them from GEO
-
----
 
 1. **RNA Velocity Basics** — stochastic / steady-state model
 2. **Dynamical Modeling** — likelihood-based EM with latent time
@@ -107,11 +94,11 @@ export OMP_NUM_THREADS=6 OPENBLAS_NUM_THREADS=6 \
 conda activate scvelo_env
 
 python scripts/run_scvelo_pipeline.py \
-  --h5ad_file Yamada_CD8/YamadaWTA1_scVelo.h5ad \
-  --seurat_file Yamada_CD8/Yamada_res1.5_CD8.qs \
-  --cell_prefix YamadaWTA1_ \
+  --h5ad_file LungOrganoid/LOBLMday14WTA_scVelo.h5ad \
+  --seurat_file LungOrganoid/LOBLMday14WTA_Seurat.rda \
+  --cell_prefix LOBLMday14WTA_ \
   --meta_cols orig.ident,TagIDs,seurat_clusters \
-  --case_dir Yamada_CD8 \
+  --case_dir LungOrganoid \
   --n_pcs 30 --n_neighbors 30 --n_jobs 6
 ```
 
@@ -137,41 +124,6 @@ a branded Quarto HTML report.
 | Gene filtering | Species-specific removal | Human: mitochondrial `MT-*`, ribosomal `RPL/RPS/RPLP`, pseudogene-like `RPL*P*`, `RPS*P*`, `-ps`; Mouse: mitochondrial `mt-*`, ribosomal `Rpl/Rps/Rplp`, pseudogene-like `-ps`; for both: remove features annotated as `pseudogene` |
 | Filter & normalize | `scv.pp.filter_and_normalize(min_shared_counts=20, n_top_genes=2000)` | Selects top 2,000 highly variable genes (matches official scVelo tutorial) |
 | Neighbors & moments | `scv.pp.moments(n_pcs=30, n_neighbors=30)` | Computes first/second order moments and the neighborhood graph used downstream |
-
-## Reanalysis Commands (Current Cases)
-
-Run from `scvelo_pipeline/`:
-
-```bash
-export OMP_NUM_THREADS=6 OPENBLAS_NUM_THREADS=6 \
-       VECLIB_MAXIMUM_THREADS=6 NUMEXPR_MAX_THREADS=6 \
-       NUMBA_DISABLE_JIT=1 MPLCONFIGDIR=/tmp/mpl_scvelo
-conda activate scvelo_env
-
-python scripts/run_scvelo_pipeline.py \
-  --h5ad_file Yamada_CD8/YamadaWTA1_scVelo.h5ad \
-  --seurat_file Yamada_CD8/Yamada_res1.5_CD8.qs \
-  --cell_prefix YamadaWTA1_ \
-  --meta_cols orig.ident,TagIDs,seurat_clusters \
-  --case_dir Yamada_CD8 \
-  --n_pcs 30 --n_neighbors 30 --n_jobs 6
-
-python scripts/run_scvelo_pipeline.py \
-  --h5ad_file Yamada_CD4/YamadaWTA1_scVelo.h5ad \
-  --seurat_file Yamada_CD4/Yamada_res1.5_CD4.qs \
-  --cell_prefix YamadaWTA1_ \
-  --meta_cols orig.ident,TagIDs,seurat_clusters \
-  --case_dir Yamada_CD4 \
-  --n_pcs 30 --n_neighbors 30 --n_jobs 6
-
-python scripts/run_scvelo_pipeline.py \
-  --h5ad_file LungOrganoid/LOBLMday14WTA_scVelo.h5ad \
-  --seurat_file LungOrganoid/LOBLMday14WTA_Seurat.rda \
-  --cell_prefix LOBLMday14WTA_ \
-  --meta_cols orig.ident,TagIDs,seurat_clusters \
-  --case_dir LungOrganoid \
-  --n_pcs 30 --n_neighbors 30 --n_jobs 6
-```
 
 ### QC (before both parts)
 
@@ -374,41 +326,6 @@ export NUMEXPR_MAX_THREADS=6
 | 5,000–15,000 cells | 15–60 min | 6 |
 | > 15,000 cells | 1–3 hours | 4–6 |
 
-## Monitoring
-
-```bash
-# Check if pipeline is running
-ps aux | grep run_scvelo_pipeline | grep -v grep
-
-# Watch output directory grow
-ls -lhR <case_dir>/results/
-
-# Or use tree for a compact view
-tree <case_dir>/results/
-```
-
-## Known Limitations
-
-| Issue | Notes |
-|-------|-------|
-| Gene filtering | Species-aware (human & mouse conventions); other species (e.g. rat, zebrafish) may need additional prefix patterns |
-| Cell cycle scoring | Requires standard human/mouse phase marker gene names; fails silently on custom gene symbols |
-| PAGA velocity graph | Known sparse-matrix compatibility issue with scipy ≥ 1.13 in scvelo 0.3.3; patched at runtime |
-| Styled HTML tables | `.html` table files require a browser to view; content is also embedded in the Quarto report |
-| Quarto render | Requires Quarto CLI and `pyyaml`, `nbformat`, `nbclient` in base Python |
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| `conda: command not found` | Run `conda init zsh && source ~/.zshrc` |
-| `Rscript not found` | Install R or add to PATH |
-| Exit code 137 (OOM killed) | Lower `--n_jobs`, `--n_pcs`, `--n_neighbors`; set thread limits |
-| No matching cells (0 common) | Check `--cell_prefix` matches Seurat barcode prefix |
-| `conda run` buffers output | Use `conda activate` + direct `python` instead |
-| `numba` "cannot cache function ... no locator available" | Export `NUMBA_DISABLE_JIT=1` and use a writable `MPLCONFIGDIR` (example above) |
-| Quarto render fails | Ensure `quarto` is on PATH; install `pyyaml nbformat nbclient` in base Python |
-| PAGA `zip(*edges)` error | scipy 1.13 incompatibility — pipeline patches this automatically |
 
 ## References
 
